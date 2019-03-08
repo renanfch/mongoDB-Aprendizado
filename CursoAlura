@@ -1,0 +1,156 @@
+//Criando uma coleção
+db.createCollection("alunos")
+
+//Inserindo um documento na coleção
+db.alunos.insert({
+"nome" : "Renan",
+"data_nascimento" : new Date(1989,02,08),
+"curso" : {
+	"nome" : "Sistemas de informação"
+}
+})
+
+db.alunos.insert({
+"nome" : "Antonio Bianco",
+"data_nascimento" : new Date(1986,02,08),
+"curso" : {
+	"nome" : "Ciencias da computação"
+}
+})
+
+//Procurar todos alunos
+db.alunos.find() 
+
+//Remover um aluno
+db.alunos.remove({
+"_id": ObjectId("5c82a95ced220865a16540df")
+})
+
+// Format
+db.alunos.find().pretty()
+
+// Filtrando
+db.alunos.find({
+	nome : "Antonio Bianco"
+})
+// Filtrando com dois campos e data 
+db.alunos.find({
+		"nome": "Felipe", 
+		"data_nascimento": new Date(1994, 02, 26)
+})
+
+// Filtrando dois dados com or
+db.alunos.find({
+$or : [
+	{ "nome" : "Antonio Bianco"},
+	{ "nome" : "Felipe"}
+        ] 
+	
+})
+
+// Filtrando dois dados com and
+db.alunos.find({
+$or : [
+	{ "nome" : "Antonio Bianco"},
+	{ "nome" : "Felipe"}
+        ],
+      "curso" : "Sistemas de informação"
+	
+})
+
+// Filtrando dois dados com in
+db.alunos.find({
+	 "nome" : { $in : ["Antonio Bianco","Felipe"] }
+})
+
+//Update de um documento
+db.alunos.update(
+	{"curso.nome" : "Sistemas de informação" },
+	{
+		$set : {
+			"curso.nome" : "Sistemas de informação"
+			}
+	}
+)
+
+//Update de todos documentos
+db.alunos.update(
+	{"curso.nome" : "Sistemas de informação" },
+	{
+		$set : {
+			"curso.nome" : "Sistemas de informação"
+			}
+	}, {multi:true}
+)
+//Inserir uma nota para esse curso
+db.alunos.update(
+	{"curso.nome" : "Sistemas de informação" },
+	{
+		$push : { notas : 8.5 }
+	}
+)
+
+//Inserir várias notas
+db.alunos.update(
+	{"curso.nome" : "Sistemas de informação" },
+	{
+		$push : { notas : { $each: [8.5,3] } }
+	}
+)
+
+//Notas maior que 5 $gt
+db.alunos.find(
+{
+	notas : {$gt:5} 
+}
+)
+
+//Notas maior que 5 $gt mas apenas 1 aluno
+db.alunos.findOne(
+{
+	notas : {$gt:5} 
+}
+)
+
+//Ordenação
+db.alunos.find().sort(
+ { "nome" : 1 } 
+)
+
+//Limite
+db.alunos.find().sort(
+ { "nome" : 1 } 
+).limit(3)
+
+//Update com coordenadas
+db.alunos.update(
+{ nome : "Antonio Bianco" },
+	{ $set : { 
+		localizacao : { endereco : "Rua Vergueiro, 3185"},
+		coordinates : [-23.588213,-46.632356],
+		type : "Point"
+	}
+        } 
+)
+//Criar indice de coordenadas
+db.alunos.createIndex({
+	localizacao : "2dsphere"
+})
+
+//Buscar a segunda, terceira e a quarta coordenada mais próxima pulando a primeira
+db.alunos.aggregate([
+{
+	$geoNear : { 
+		near : { 
+			coordinates: [-23.5640265,-46.6527128],
+			type : "Point" 
+		},
+		distanceField : "distancia.calculada",
+		spherical : true,
+		num : 4	
+	}
+},  { $skip : 1 }
+])
+
+//Importar um arquivo
+mongoimport -c alunos --jsonArray < alunos.json
